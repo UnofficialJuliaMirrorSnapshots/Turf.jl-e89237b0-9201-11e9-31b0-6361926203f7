@@ -1,14 +1,25 @@
 """
-    centroid([geojson::T]) where {T <: AbstractGeometry}
+    centroid([geojson::T])::Point where {T <: AbstractGeometry}
 
 Takes one or more features and calculates the centroid using the mean of all vertices.
 This lessens the effect of small islands and artifacts when calculating the centroid of a set of polygons.
+
+# Examples
+```julia
+julia> using Turf
+
+julia> line = LineString([[1, 2], [4, 6], [8, 9.5], [12, 13.4]])
+LineString(Array{Float64,1}[[1.0, 2.0], [4.0, 6.0], [8.0, 9.5], [12.0, 13.4]])
+
+julia> centroid(line)
+Point([6.25, 7.725])
+```
 """
-function centroid(geojson::T) where {T<:AbstractGeometry}
+function centroid(geojson::T)::Point where {T<:AbstractGeometry}
     x = 0.
     y = 0.
     len = 0.
-    # TODO: check dims
+    # TODO: support MultiPolygon
 
     data = geojson.coordinates
     type = geotype(geojson)
@@ -17,13 +28,13 @@ function centroid(geojson::T) where {T<:AbstractGeometry}
         x = data[1]
         y = data[2]
         len = 1.
-    elseif type === :LineString
+    elseif type === :LineString || type === :MultiPoint
         for i in eachindex(data)
             x += data[i][1]
             y += data[i][2]
             len += 1
         end
-    elseif type === :Polygon || type === :Polygon
+    elseif type === :Polygon || type === :MultiLineString
         for i in eachindex(data[1])
             x += data[1][i][1]
             y += data[1][i][2]
@@ -34,8 +45,75 @@ function centroid(geojson::T) where {T<:AbstractGeometry}
     return Point([x / len, y / len])
 end
 
-"""Take a GeoJson Geometry and return the absolute center point."""
-function center(geojson::T) where {T <: AbstractGeometry}
+
+"""
+    centroid([geojson::T])::Point where {T <: AbstractFeatureCollection}
+
+Takes one or more features and calculates the centroid using the mean of all vertices.
+This lessens the effect of small islands and artifacts when calculating the centroid of a set of polygons.
+
+# Examples
+```julia
+julia> using Turf
+
+julia> line = LineString([[1, 2], [4, 6], [8, 9.5], [12, 13.4]])
+LineString(Array{Float64,1}[[1.0, 2.0], [4.0, 6.0], [8.0, 9.5], [12.0, 13.4]])
+
+julia> centroid(line)
+Point([6.25, 7.725])
+```
+"""
+function centroid(geojson::T)::Point where {T <: AbstractFeatureCollection}
+    x = 0.
+    y = 0.
+    len = 0.
+
+    for feat in geojson.features
+        geometry = feat.geometry
+
+        data = geometry.coordinates
+        type = geotype(geometry)
+
+        if type === :Point
+            x = data[1]
+            y = data[2]
+            len = 1.
+        elseif type === :LineString || type === :MultiPoint
+            for i in eachindex(data)
+                x += data[i][1]
+                y += data[i][2]
+                len += 1.
+            end
+        elseif type === :Polygon || type === :MultiLineString
+            for i in eachindex(data[1])
+                x += data[1][i][1]
+                y += data[1][i][2]
+                len += 1.
+            end
+        end
+    end
+
+    return Point([x / len, y / len])
+end
+
+
+"""
+    center(geojson::T) where {T <: AbstractGeometry}
+
+Take a GeoJson Geometry and return the absolute center point.
+
+# Examples
+```julia
+julia> using Turf
+
+julia> line = LineString([[1, 2], [4, 6], [8, 9.5], [12, 13.4]])
+LineString(Array{Float64,1}[[1.0, 2.0], [4.0, 6.0], [8.0, 9.5], [12.0, 13.4]])
+
+julia> center(line)
+Point([6.5, 7.7])
+```
+"""
+function center(geojson::T)::Point where {T <: Union{AbstractGeometry, AbstractFeatureCollection}}
     box = bbox(geojson)
 
     x = (box[1] + box[3]) / 2
@@ -45,8 +123,21 @@ function center(geojson::T) where {T <: AbstractGeometry}
 end
 
 """
+    masscenter(geojson::T) where {T <: AbstractGeometry}
+
 Take any GeoJson Geometry and return its [center of mass](https://en.wikipedia.org/wiki/Center_of_mass) using this formula:
 [Centroid of Polygon](https://en.wikipedia.org/wiki/Centroid#Centroid_of_polygon).
+
+# Examples
+```julia
+julia> using Turf
+
+julia> line = LineString([[1, 2], [4, 6], [8, 9.5], [12, 13.4]])
+LineString(Array{Float64,1}[[1.0, 2.0], [4.0, 6.0], [8.0, 9.5], [12.0, 13.4]])
+
+julia> masscenter(line)
+Point([6.25, 7.725])
+```
 """
 function masscenter(geojson::T) where {T <: AbstractGeometry}
     type = geotype(geojson)
@@ -98,9 +189,22 @@ function masscenter(geojson::T) where {T <: AbstractGeometry}
 end
 
 """
+    meancenter(geojson::T, weight::Real=1.) where {T <: Union{AbstractGeometry, AbstractFeatureCollection}}
+
 Take a GeoJson Geometry and return the mean center. Can be weighted.
+
+# Examples
+```julia
+julia> using Turf
+
+julia> line = LineString([[1, 2], [4, 6], [8, 9.5], [12, 13.4]])
+LineString(Array{Float64,1}[[1.0, 2.0], [4.0, 6.0], [8.0, 9.5], [12.0, 13.4]])
+
+julia> meancenter(line)
+Point([6.25, 7.725])
+```
 """
-function meancenter(geojson::T, weight::Real=1) where {T <: Union{AbstractGeometry, AbstractFeatureCollection}}
+function meancenter(geojson::T, weight::Real=1.) where {T <: Union{AbstractGeometry, AbstractFeatureCollection}}
     # TODO: so ugly! Refactor?
     xs = 0.
     ys = 0.
@@ -164,7 +268,26 @@ function meancenter(geojson::T, weight::Real=1) where {T <: Union{AbstractGeomet
     return Point([xs / ns, ys / ns])
 end
 
-function mediancenter(geojson::T, weight::Real=1, tol::Real=0.001, count::Integer=10) where {T <: AbstractFeatureCollection}
+"""
+    mediancenter(geojson::T, weight::Real=1., tol::Real=0.001, count::Integer=10) where {T <: AbstractFeatureCollection}
+
+Take a FeatureCollection of points and calculate the median center,
+algorithimically. The median center is understood as the point that is
+requires the least total travel from all other points.
+
+# Examples
+```julia
+julia> using Turf
+
+julia> fc = FeatureCollection([Feature(Point([0, 0])),Feature(Point([9, 9])), Feature(Point([9.25, 9.25])),
+             Feature(Point([9.5, 9.5])), Feature(Point([9.75, 9.75])), Feature(Point([10, 10]))])
+[...]
+
+julia> mediancenter(fc)
+Point([9.25425, 9.25425])
+```
+"""
+function mediancenter(geojson::T, weight::Real=1., tol::Real=0.001, count::Integer=10) where {T <: AbstractFeatureCollection}
 
     mean = meancenter(geojson)
 

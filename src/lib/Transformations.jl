@@ -7,7 +7,9 @@ Rotates any geojson Feature or Geometry of a specified angle, around its `centro
 all rotations follow the right-hand rule.
 
 # Examples
-```jldoctest
+```julia
+julia> using Turf
+
 julia> point = Point([-75.69926351308823,45.43145021122502])
 Point([-75.6993, 45.4315])
 
@@ -76,7 +78,9 @@ Moves any geojson Feature or Geometry of a specified distance along a Rhumb Line
 on the provided direction angle.
 
 # Examples
-```jldoctest
+```julia
+julia> using Turf
+
 julia> poly = Polygon([[[0, 29], [3.5, 29], [2.5, 32], [0, 29]]])
 Polygon(Array{Array{Float64,1},1}[[[0.0, 29.0], [3.5, 29.0], [2.5, 32.0], [0.0, 29.0]]])
 
@@ -140,7 +144,9 @@ Scale a GeoJson from a given point by a factor of scaling (ex: factor=2 would ma
 If a FeatureCollection is provided, the origin point will be calculated based on each individual Feature.
 
 # Examples
-```jldoctest
+```julia
+julia> using Turf
+
 julia> coll = FeatureCollection([Feature(Point([-75.69926351308823,45.43145021122502])), Feature(Polygon([[[0, 29], [3.5, 29], [2.5, 32], [0, 29]]]))])
 FeatureCollection{Feature}(Feature[Feature(Point([-75.6993, 45.4315]), Dict{String,Any}()), Feature(Polygon(Array{Array{Float64,1},1}[[[0.0, 29.0], [3.5, 29.0], [2.5, 32.0], [0.0, 29.0]]]), Dict{String,Any}())], nothing, nothing)
 
@@ -172,7 +178,9 @@ transform_scale!(geojson::T, factor::Real, origin::String="centroid") where {T <
 Scale a Feature.
 
 # Examples
-```jldoctest
+```julia
+julia> using Turf
+
 julia> feature = Feature(Polygon([[[0, 29], [3.5, 29], [2.5, 32], [0, 29]]]))
 Feature(Polygon(Array{Array{Float64,1},1}[[[0.0, 29.0], [3.5, 29.0], [2.5, 32.0], [0.0, 29.0]]]), Dict{String,Any}())
 
@@ -269,7 +277,9 @@ end
 Takes a Geometry or a FeatureCollection and returns all positions as Points.
 
 # Examples
-```jldoctest
+```julia
+julia> using Turf
+
 julia> poly = Polygon([[[100, 0], [101, 0], [101, 1], [100, 1], [100, 0]]])
 Polygon(Array{Array{Float64,1},1}[[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]])
 
@@ -280,7 +290,7 @@ julia> explode(poly, true)
  Point([101.0, 1.0])
  Point([100.0, 1.0])
  Point([100.0, 0.0])
- ```
+```
 """
 function explode(geojson::T, pointsOnly::Bool=false) where {T <: Union{AbstractFeatureCollection, AbstractGeometry}}
     points::Vector{Point} = []
@@ -334,13 +344,15 @@ end
 Take input Features and Geometries and flips all of their coordinates from `[x, y]` to `[y, x]`.
 
 # Examples
-```jldoctest
+```julia
+julia> using Turf
+
 julia> point = Point([77.34374999999999,43.58039085560784,3000])
 Point([77.3437, 43.5804, 3000.0])
 
 julia> flip(point)
 Point([43.5804, 77.3437, 3000.0])
- ```
+```
 """
 function flip(geojson::T, mutate::Bool=false) where {T <: Union{AbstractFeature, AbstractGeometry}}
     type = geotype(geojson)
@@ -504,7 +516,9 @@ end
 Finds the tangents of a Polygon from a Point.
 
 # Examples
-```jldoctest
+```julia
+julia> using Turf
+
 julia> point = Point([92.46093749999999,54.67383096593114])
 Point([92.4609, 54.6738])
 
@@ -585,13 +599,15 @@ end
 Converts a Polygon to LineString or MultiLineString
 
 # Examples
-```jldoctest
+```julia
+julia> using Turf
+
 julia> poly = Polygon([[[-2.275543, 53.464547],[-2.275543, 53.489271],[-2.215118, 53.489271],[-2.215118, 53.464547],[-2.275543, 53.464547]]])
 Polygon(Array{Array{Float64,1},1}[[[-2.27554, 53.4645], [-2.27554, 53.4893], [-2.21512, 53.4893], [-2.21512, 53.4645], [-2.27554, 53.4645]]])
 
 julia> polygon_to_line(poly)
 LineString(Array{Float64,1}[[-2.27554, 53.4645], [-2.27554, 53.4893], [-2.21512, 53.4893], [-2.21512, 53.4645], [-2.27554, 53.4645]])
- ```
+```
 """
 function polygon_to_line(poly::Polygon)
     return coordinatesToLine(poly.coordinates)
@@ -605,7 +621,7 @@ end
 """
     convert_to([geojson::AbstractGeometry[, projection::String]], mutate::Bool=false)
 
-Convert a GeoJSON object to the defined `projection`.
+Convert a GeoJSON geojsonect to the defined `projection`.
 """
 function convert_to(geojson::AbstractGeometry, projection::String, mutate::Bool=false)
     allowed_proj = ["mercator", "wgs84"]
@@ -654,7 +670,9 @@ Combine a FeatureCollection of Point, LineString, or Polygon features
 into MultiPoint, MultiLineString, or MultiPolygon features.
 
 # Examples
-```jldoctest
+```julia
+julia> using Turf
+
 julia> l1 = LineString([[102.0,-10.0],[130.0,4.0]])
 LineString(Array{Float64,1}[[102.0, -10.0], [130.0, 4.0]])
 

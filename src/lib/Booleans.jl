@@ -4,7 +4,9 @@
 Take a ring and return true or false whether or not the ring is clockwise or counter-clockwise.
 
 # Examples
-```jldoctest
+```julia
+julia> using Turf
+
 julia> line = LineString([[0, 0], [1, 1], [1, 0], [0, 0]])
 LineString(Array{Float64,1}[[0.0, 0.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0]])
 
@@ -43,7 +45,9 @@ end
 Take a polygon and return true or false as to whether it is concave or not.
 
 # Examples
-```jldoctest
+```julia
+julia> using Turf
+
 julia> poly = Polygon([[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]])
 Polygon(Array{Array{Float64,1},1}[[[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0]]])
 
@@ -109,7 +113,9 @@ end
 Return `true` if each segment of `line1` is parallel to the correspondent segment of `line2`
 
 # Examples
-```jldoctest
+```julia
+julia> using Turf
+
 julia> line1 = LineString([[9.170356, 45.477985], [9.164434, 45.482551], [9.166644, 45.484003]])
 LineString(Array{Float64,1}[[9.17036, 45.478], [9.16443, 45.4826], [9.16664, 45.484]])
 
@@ -150,11 +156,13 @@ end
 """
     point_on_line(point::Point, line::LineString, ignoreEndVertices::Bool=false)::Bool
 
-Returns true if a point is on a line. Accepts a optional parameter to ignore the
+Return true if a point is on a line. Accept a optional parameter to ignore the
 start and end vertices of the linestring.
 
 # Examples
-```jldoctest
+```julia
+julia> using Turf
+
 julia> point = Point([1,1])
 Point([1.0, 1.0])
 
@@ -222,11 +230,13 @@ end
 """
     point_in_polygon(point::Point, polygon::Union{Polygon, MultiPolygon}, ignoreBoundary::Bool=false)::Bool
 
-Takes a Point and a Polygon and determines if the point
+Take a Point and a Polygon and determine if the point
 resides inside the polygon. The polygon can be convex or concave. The function accounts for holes.
 
 # Examples
-```jldoctest
+```julia
+julia> using Turf
+
 julia> point = Point([-77, 44])
 Point([-77.0, 44.0])
 
@@ -303,7 +313,9 @@ must not intersect the exterior of the primary (geometry a).
 `contains` returns the exact opposite result of `within`.
 
 # Examples
-```jldoctest
+```julia
+julia> using Turf
+
 julia> line = LineString([[1, 1], [1, 2], [1, 3], [1, 4]])
 LineString(Array{Float64,1}[[1.0, 1.0], [1.0, 2.0], [1.0, 3.0], [1.0, 4.0]])
 
@@ -424,7 +436,9 @@ must not intersect the exterior of the secondary (geometry b).
 `within` returns the exact opposite result of `contains`.
 
 # Examples
-```jldoctest
+```julia
+julia> using Turf
+
 julia> line = LineString([[1, 1], [1, 2], [1, 3], [1, 4]])
 LineString(Array{Float64,1}[[1.0, 1.0], [1.0, 2.0], [1.0, 3.0], [1.0, 4.0]])
 
@@ -495,7 +509,9 @@ end
 Return `true` if the intersection of the two geometries is an empty set.
 
 # Examples
-```jldoctest
+```julia
+julia> using Turf
+
 julia> poly = Polygon([[[-1, 2], [3, 2], [3, 3], [-1, 3], [-1, 2]]])
 Polygon(Array{Array{Float64,1},1}[[[-1.0, 2.0], [3.0, 2.0], [3.0, 3.0], [-1.0, 3.0], [-1.0, 2.0]]])
 
@@ -573,7 +589,9 @@ end
 Find a point that intersects LineStrings with two coordinates each.
 
 # Examples
-```jldoctest
+```julia
+julia> using Turf
+
 julia> line1 = LineString([[124.584961,-12.768946],[126.738281,-17.224758]])
 LineString(Array{Float64,1}[[124.585, -12.7689], [126.738, -17.2248]])
 
@@ -646,7 +664,9 @@ the maximum dimension of the two source geometries and the intersection set is i
 both source geometries.
 
 # Examples
-```jldoctest
+```julia
+julia> using Turf
+
 julia> line = LineString([[1, 1], [1, 2], [1, 3], [1, 4]])
 LineString(Array{Float64,1}[[1.0, 1.0], [1.0, 2.0], [1.0, 3.0], [1.0, 4.0]])
 

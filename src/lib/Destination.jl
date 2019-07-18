@@ -1,7 +1,26 @@
 """
-Takes a Point and calculates the location of a destination point given a distance in
+    destination(origin::Position, distance::Real, bearing::Real, units::String="kilometers")
+
+Take a Point or a Position and calculate the location of a destination point given a distance in
 degrees, radians, miles, or kilometers; and bearing in degrees.
-This uses the [Haversine formula](http://en.wikipedia.org/wiki/Haversine_formula) to account for global curvature.
+The destination is calculated using the [Haversine formula](http://en.wikipedia.org/wiki/Haversine_formula) to account for global curvature.
+
+# Examples
+```julia
+julia> using Turf
+
+julia> point = Point([-75, 38])
+Point([-75.0, 38.0])
+
+julia> destination(point, 100, 0)
+Point([-75.0, 38.8993])
+
+julia> destination(point, 100, 45)
+Point([-74.1859, 38.6331])
+
+julia> destination(point, 50, 0, "miles")
+Point([-75.0, 38.7237])
+```
 """
 function destination(origin::Position, distance::Real, bearing::Real, units::String="kilometers")
     lon1 = deg2rad(origin[1])
@@ -15,10 +34,31 @@ function destination(origin::Position, distance::Real, bearing::Real, units::Str
     return Point([rad2deg(lon2), rad2deg(lat2)])
 end
 
+destination(origin::Point, distance::Real, bearing::Real, units::String="kilometers") = destination(origin.coordinates, distance, bearing, units)
+
 
 """
-Returns the destination Point having travelled the given distance along a Rhumb line from the
+    rhumb_destination(origin::Position, distance::Real, bearing::Real, units::String="kilometers")
+
+Take a Point or a Position and return the destination Point having travelled the given distance along a Rhumb line from the
 origin Point with the (varant) given bearing.
+
+# Examples
+```julia
+julia> using Turf
+
+julia> point = Point([-75, 38])
+Point([-75.0, 38.0])
+
+julia> rhumb_destination(point, 100, 0)
+Point([-75.0, 38.8993])
+
+julia> rhumb_destination(point, 100, 45)
+Point([-74.1895, 38.6359])
+
+julia> rhumb_destination(point, 50, 0, "miles")
+Point([-75.0, 38.7237])
+```
 """
 function rhumb_destination(origin::Position, distance::Real, bearing::Real, units::String="kilometers")
     negative::Bool = distance < 0
@@ -33,6 +73,8 @@ function rhumb_destination(origin::Position, distance::Real, bearing::Real, unit
 
     return Point(dest)
 end
+
+rhumb_destination(origin::Point, distance::Real, bearing::Real, units::String="kilometers") = rhumb_destination(origin.coordinates, distance, bearing, units)
 
 function calculateRhumbDestination(origin::Position, distance::Real, bearing::Real)
     Δ = distance / earth_radius
