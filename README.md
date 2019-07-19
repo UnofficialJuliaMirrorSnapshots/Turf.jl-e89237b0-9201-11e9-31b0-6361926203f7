@@ -1,12 +1,14 @@
 # Turf.jl
 
-[![Linux/MacOS](https://travis-ci.org/philoez98/Turf.jl.svg?branch=master)](https://travis-ci.org/philoez98/Turf.jl)
-[![Windows](https://ci.appveyor.com/api/projects/status/deghewsv2gra487s?svg=true)](https://ci.appveyor.com/project/philoez98/turf-jl)
-[![Coverage Status](https://coveralls.io/repos/github/philoez98/Turf.jl/badge.svg?branch=master)](https://coveralls.io/github/philoez98/Turf.jl?branch=master)
+| **Documentation** | **Build Status** |
+|:---:|:---:|
+| [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://philoez98.github.io/Turf.jl/latest) | [![Linux/MacOS](https://travis-ci.org/philoez98/Turf.jl.svg?branch=master)](https://travis-ci.org/philoez98/Turf.jl)  [![Windows](https://ci.appveyor.com/api/projects/status/deghewsv2gra487s?svg=true)](https://ci.appveyor.com/project/philoez98/turf-jl)  [![Coverage Status](https://coveralls.io/repos/github/philoez98/Turf.jl/badge.svg?branch=master)](https://coveralls.io/github/philoez98/Turf.jl?branch=master) |
+
 
 A spatial analysis library written in Julia, ported from the great [*Turf.js*](https://github.com/Turfjs/turf).
 
-Turf.jl uses [GeoInteface.jl](https://github.com/JuliaGeo/GeoInterface.jl) and [GeoJSON.jl](https://github.com/JuliaGeo/GeoJSON.jl) for creating and handling all geographic data.
+Turf.jl uses [GeoInteface.jl](https://github.com/JuliaGeo/GeoInterface.jl) and [GeoJSON.jl](https://github.com/JuliaGeo/GeoJSON.jl) to create and handle all geographic data.
+
 
 ## Installation
 
@@ -120,6 +122,15 @@ before:
 after:
 
 ![after](https://user-images.githubusercontent.com/40722053/60755010-e33af900-9fe9-11e9-89d9-2e3164e4a7ca.JPG)
+
+For more examples, please take a look at the [Examples](https://philoez98.github.io/Turf.jl/latest/examples/) section of the documentation.
+
+
+## Documentation
+
+- [**STABLE**](https://philoez98.github.io/Turf.jl/latest): most recent tagged version.
+- [**DEVEL**](https://philoez98.github.io/Turf.jl/latest): development version.
+
 
 ## Getting Help
 

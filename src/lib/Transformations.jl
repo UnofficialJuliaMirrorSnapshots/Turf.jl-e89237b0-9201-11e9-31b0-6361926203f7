@@ -7,9 +7,7 @@ Rotates any geojson Feature or Geometry of a specified angle, around its `centro
 all rotations follow the right-hand rule.
 
 # Examples
-```julia
-julia> using Turf
-
+```jldoctest
 julia> point = Point([-75.69926351308823,45.43145021122502])
 Point([-75.6993, 45.4315])
 
@@ -46,13 +44,15 @@ function transform_rotate(; geojson::T, angle::Real, pivot::Point=nothing, mutat
 
     elseif type === :Polygon || type === :MultiLineString
 
-        for i in eachindex(coords[1])
-            initAngle = rhumb_bearing(pivot.coordinates, coords[1][i])
-            finalAngle = initAngle + angle
-            dist = rhumb_distance(pivot.coordinates, coords[1][i])
-            newCoords = rhumb_destination(pivot.coordinates, dist, finalAngle).coordinates
-            coords[1][i][1] = newCoords[1]
-            coords[1][i][2] = newCoords[2]
+        for i in eachindex(coords)
+            for j in eachindex(coords[i])
+                initAngle = rhumb_bearing(pivot.coordinates, coords[i][j])
+                finalAngle = initAngle + angle
+                dist = rhumb_distance(pivot.coordinates, coords[i][j])
+                newCoords = rhumb_destination(pivot.coordinates, dist, finalAngle).coordinates
+                coords[i][j][1] = newCoords[1]
+                coords[i][j][2] = newCoords[2]
+            end
         end
     elseif type === :LineString
 
@@ -78,9 +78,7 @@ Moves any geojson Feature or Geometry of a specified distance along a Rhumb Line
 on the provided direction angle.
 
 # Examples
-```julia
-julia> using Turf
-
+```jldoctest
 julia> poly = Polygon([[[0, 29], [3.5, 29], [2.5, 32], [0, 29]]])
 Polygon(Array{Array{Float64,1},1}[[[0.0, 29.0], [3.5, 29.0], [2.5, 32.0], [0.0, 29.0]]])
 
@@ -116,11 +114,13 @@ function transform_translate(geojson::T, distance::R, direction::R, vertical::R=
         (vertical != 0 && length(coords) === 3) && (coords[3] += vertical)
 
     elseif type === :Polygon || type === :MultiLineString
-        for i in eachindex(coords[1])
-            newCoords = rhumb_destination(coords[1][i], distance, direction, units).coordinates
-            coords[1][i][1] = newCoords[1]
-            coords[1][i][2] = newCoords[2]
-            (vertical != 0 && length(coords[1][i]) === 3) && (coords[1][i][3] += vertical)
+        for i in eachindex(coords)
+            for j in eachindex(coords[i])
+                newCoords = rhumb_destination(coords[i][j], distance, direction, units).coordinates
+                coords[i][j][1] = newCoords[1]
+                coords[i][j][2] = newCoords[2]
+                (vertical != 0 && length(coords[i][j]) === 3) && (coords[i][j][3] += vertical)
+            end
         end
     elseif type === :LineString
         for i in eachindex(coords)
@@ -144,9 +144,7 @@ Scale a GeoJson from a given point by a factor of scaling (ex: factor=2 would ma
 If a FeatureCollection is provided, the origin point will be calculated based on each individual Feature.
 
 # Examples
-```julia
-julia> using Turf
-
+```jldoctest
 julia> coll = FeatureCollection([Feature(Point([-75.69926351308823,45.43145021122502])), Feature(Polygon([[[0, 29], [3.5, 29], [2.5, 32], [0, 29]]]))])
 FeatureCollection{Feature}(Feature[Feature(Point([-75.6993, 45.4315]), Dict{String,Any}()), Feature(Polygon(Array{Array{Float64,1},1}[[[0.0, 29.0], [3.5, 29.0], [2.5, 32.0], [0.0, 29.0]]]), Dict{String,Any}())], nothing, nothing)
 
@@ -178,9 +176,7 @@ transform_scale!(geojson::T, factor::Real, origin::String="centroid") where {T <
 Scale a Feature.
 
 # Examples
-```julia
-julia> using Turf
-
+```jldoctest
 julia> feature = Feature(Polygon([[[0, 29], [3.5, 29], [2.5, 32], [0, 29]]]))
 Feature(Polygon(Array{Array{Float64,1},1}[[[0.0, 29.0], [3.5, 29.0], [2.5, 32.0], [0.0, 29.0]]]), Dict{String,Any}())
 
@@ -218,18 +214,20 @@ function scale(feature::Feature, factor::Real, origin::String="centroid")
         end
     elseif type === :Polygon || type === :MultiLineString
 
-        for i in eachindex(coords[1])
-            start = rhumb_distance(center.coordinates, coords[1][i])
-            bearing = rhumb_bearing(center.coordinates, coords[1][i])
-            distance = start * factor
+        for i in eachindex(coords)
+            for j in eachindex(coords[i])
+                start = rhumb_distance(center.coordinates, coords[i][j])
+                bearing = rhumb_bearing(center.coordinates, coords[i][j])
+                distance = start * factor
 
-            newCoords = rhumb_destination(center.coordinates, distance, bearing).coordinates
+                newCoords = rhumb_destination(center.coordinates, distance, bearing).coordinates
 
-            coords[1][i][1] = newCoords[1]
-            coords[1][i][2] = newCoords[2]
+                coords[i][j][1] = newCoords[1]
+                coords[i][j][2] = newCoords[2]
 
-            if length(coords) === 3
-                coords[1][i][3] *= factor
+                if length(coords) === 3
+                    coords[i][j][3] *= factor
+                end
             end
         end
     end
@@ -277,9 +275,7 @@ end
 Takes a Geometry or a FeatureCollection and returns all positions as Points.
 
 # Examples
-```julia
-julia> using Turf
-
+```jldoctest
 julia> poly = Polygon([[[100, 0], [101, 0], [101, 1], [100, 1], [100, 0]]])
 Polygon(Array{Array{Float64,1},1}[[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]])
 
@@ -290,6 +286,7 @@ julia> explode(poly, true)
  Point([101.0, 1.0])
  Point([100.0, 1.0])
  Point([100.0, 0.0])
+
 ```
 """
 function explode(geojson::T, pointsOnly::Bool=false) where {T <: Union{AbstractFeatureCollection, AbstractGeometry}}
@@ -304,8 +301,10 @@ function explode(geojson::T, pointsOnly::Bool=false) where {T <: Union{AbstractF
 
             elseif geotype(geom) === :Polygon || geotype(geom) === :MultiLineString
 
-                for i in eachindex(geom.coordinates[1])
-                    push!(points, Point(geom.coordinates[1][i]))
+                for i in eachindex(geom.coordinates)
+                    for j in eachindex(geom.coordinates[i])
+                        push!(points, Point(geom.coordinates[i][j]))
+                    end
                 end
             elseif geotype(geom) === :LineString
 
@@ -321,8 +320,10 @@ function explode(geojson::T, pointsOnly::Bool=false) where {T <: Union{AbstractF
 
         elseif geotype(geojson) === :Polygon || geotype(geojson) === :MultiLineString
 
-            for i in eachindex(geojson.coordinates[1])
-                push!(points, Point(geojson.coordinates[1][i]))
+            for i in eachindex(geojson.coordinates)
+                for j in eachindex(geojson.coordinates[i])
+                    push!(points, Point(geojson.coordinates[i][j]))
+                end
             end
         elseif geotype(geojson) === :LineString
 
@@ -344,9 +345,7 @@ end
 Take input Features and Geometries and flips all of their coordinates from `[x, y]` to `[y, x]`.
 
 # Examples
-```julia
-julia> using Turf
-
+```jldoctest
 julia> point = Point([77.34374999999999,43.58039085560784,3000])
 Point([77.3437, 43.5804, 3000.0])
 
@@ -516,9 +515,7 @@ end
 Finds the tangents of a Polygon from a Point.
 
 # Examples
-```julia
-julia> using Turf
-
+```jldoctest
 julia> point = Point([92.46093749999999,54.67383096593114])
 Point([92.4609, 54.6738])
 
@@ -599,9 +596,7 @@ end
 Converts a Polygon to LineString or MultiLineString
 
 # Examples
-```julia
-julia> using Turf
-
+```jldoctest
 julia> poly = Polygon([[[-2.275543, 53.464547],[-2.275543, 53.489271],[-2.215118, 53.489271],[-2.215118, 53.464547],[-2.275543, 53.464547]]])
 Polygon(Array{Array{Float64,1},1}[[[-2.27554, 53.4645], [-2.27554, 53.4893], [-2.21512, 53.4893], [-2.21512, 53.4645], [-2.27554, 53.4645]]])
 
@@ -670,9 +665,7 @@ Combine a FeatureCollection of Point, LineString, or Polygon features
 into MultiPoint, MultiLineString, or MultiPolygon features.
 
 # Examples
-```julia
-julia> using Turf
-
+```jldoctest
 julia> l1 = LineString([[102.0,-10.0],[130.0,4.0]])
 LineString(Array{Float64,1}[[102.0, -10.0], [130.0, 4.0]])
 
@@ -772,5 +765,249 @@ function tag(fc1::FeatureCollection, fc2::FeatureCollection, in_field::String, o
             end
         end
     end
+    return points
+end
+
+
+"""
+    simplify(geojson::FeatureCollection, tolerance::Real=1., hq::Bool=false, mutate::Bool=false)
+
+Take a FeatureCollection and return a simplified version.
+Internally uses an adaptation of [simplify-js](http://mourner.github.io/simplify-js/) to perform simplification using the Ramer-Douglas-Peucker algorithm.
+
+# Examples
+```jldoctest
+julia> poly = Polygon([[
+    [-70.603637, -33.399918],
+    [-70.614624, -33.395332],
+    [-70.639343, -33.392466],
+    [-70.659942, -33.394759],
+    [-70.683975, -33.404504],
+    [-70.697021, -33.419406],
+    [-70.701141, -33.434306],
+    [-70.700454, -33.446339],
+    [-70.694274, -33.458369],
+    [-70.682601, -33.465816],
+    [-70.668869, -33.472117],
+    [-70.646209, -33.473835],
+    [-70.624923, -33.472117],
+    [-70.609817, -33.468107],
+    [-70.595397, -33.458369],
+    [-70.587158, -33.442901],
+    [-70.587158, -33.426283],
+    [-70.590591, -33.414248],
+    [-70.594711, -33.406224],
+    [-70.603637, -33.399918]]])
+
+julia> simplify(poly, 0.01)
+Polygon(Array{Array{Float64,1},1}[[[-70.6036, -33.3999], [-70.684, -33.4045], [-70.7011, -33.4343], [-70.6943, -33.4584], [-70.6689, -33.4721], [-70.6098, -33.4681], [-70.5872, -33.4429], [-70.6036, -33.3999]]])
+```
+"""
+function simplify(geojson::FeatureCollection, tolerance::Real=1., hq::Bool=false, mutate::Bool=false)
+    tolerance < 0 && throw(error("Invalid tolerance. It must be a positive number!"))
+
+    !mutate && (geojson = deepcopy(geojson))
+
+    for feat in geojson.features
+        geometry = feat.geometry
+
+        simplify_geometry(geometry, tolerance, hq)
+    end
+
+    return geojson
+end
+
+
+"""
+    simplify(geojson::FeatureCollection, tolerance::Real=1., hq::Bool=false)
+
+Take a FeatureCollection and return a simplified version, modifying the original FeatureCollection.
+Internally uses an adaptation of [simplify-js](http://mourner.github.io/simplify-js/) to perform simplification using the Ramer-Douglas-Peucker algorithm.
+"""
+simplify!(geojson::FeatureCollection, tolerance::Real=1., hq::Bool=false) = simplify(geojson, tolerance, hq, true)
+
+
+"""
+    simplify(geojson::AbstractGeometry, tolerance::Real=1., hq::Bool=false, mutate::Bool=false)
+
+Take a GeoJSON Geometry and return a simplified version.
+Internally uses an adaptation of [simplify-js](http://mourner.github.io/simplify-js/) to perform simplification using the Ramer-Douglas-Peucker algorithm.
+"""
+function simplify(geojson::AbstractGeometry, tolerance::Real=1., hq::Bool=false, mutate::Bool=false)
+    !mutate && (geojson = deepcopy(geojson))
+    return simplify_geometry(geojson, tolerance, hq)
+end
+
+
+"""
+    simplify(geojson::AbstractGeometry, tolerance::Real=1., hq::Bool=false)
+
+Take a GeoJSON Geometry and return a simplified version, modifying the original Geometry.
+Internally uses an adaptation of [simplify-js](http://mourner.github.io/simplify-js/) to perform simplification using the Ramer-Douglas-Peucker algorithm.
+"""
+simplify!(geojson::AbstractGeometry, tolerance::Real=1., hq::Bool=false) = simplify(geojson, tolerance, hq, true)
+
+
+"""
+    simplify(geojson::AbstractFeature, tolerance::Real=1., hq::Bool=false, mutate::Bool=false)
+
+Take a GeoJSON Feature and return a simplified version.
+Internally uses an adaptation of [simplify-js](http://mourner.github.io/simplify-js/) to perform simplification using the Ramer-Douglas-Peucker algorithm.
+"""
+simplify(geojson::AbstractFeature, tolerance::Real=1., hq::Bool=false, mutate::Bool=false) = simplify(geojson.geometry, tolerance, hq, mutate)
+
+
+"""
+    simplify(geojson::AbstractFeature, tolerance::Real=1., hq::Bool=false)
+
+Take a GeoJSON Feature and return a simplified version, modifying the original Feature.
+Internally uses an adaptation of [simplify-js](http://mourner.github.io/simplify-js/) to perform simplification using the Ramer-Douglas-Peucker algorithm.
+"""
+simplify!(geojson::AbstractFeature, tolerance::Real=1., hq::Bool=false) = simplify(geojson, tolerance, hq, true)
+
+
+function simplify_geometry(geom::AbstractGeometry, tol::Real, hq::Bool)
+    type = geotype(geom)
+
+    isequal(type, :Point) || isequal(type, :MultiPoint) && return geom
+
+    clean!(geom)
+
+    coords = geom.coordinates
+
+    if isequal(type, :LineString)
+        geom.coordinates = simplify_line(coords, tol, hq)
+    elseif isequal(type, :MultiLineString)
+        geom.coordinates = map(lines -> simplify_line(lines, tol, hq), coords[1])
+
+    elseif isequal(type, :Polygon)
+        geom.coordinates = simplify_polygon(coords, tol, hq)
+    else
+        geom.coordinates = map(rings -> simplify_polygon(rings, tol, hq), coords[1])
+    end
+
+    return geom
+end
+
+
+function simplify_line(coords, tol::Real, hq::Bool)
+    return map(coords -> (coords[3]) ? [coords[1], coords[2], coords[3]] : [coords[1], coords[2]],
+        DP_simplify(map(coord -> [coord[1], coord[2], coord[3]], coords), tol, hq))
+end
+
+function simplify_polygon(coords, tol::Real, hq::Bool)
+    return map(ring -> begin
+        pts = map(coord -> [coord[1], coord[2]], ring)
+
+        length(pts) < 4 && throw(error("Invalid Polygon."))
+
+        simple = map(p -> [p.coordinates[1], p.coordinates[2]], DP_simplify([Point(p) for p in pts], tol, hq))
+
+        while !valid(simple)
+            tol -= tol * 0.01
+            simple = map(p -> [p.coordinates[1], p.coordinates[2]], DP_simplify([Point(p) for p in pts], tol, hq))
+        end
+
+        ((simple[length(simple)][1] != simple[1][1]) ||
+            (simple[length(simple)][2] != simple[1][2])) && push!(simple, simple[1])
+
+        return simple
+
+        end, coords)
+end
+
+function valid(ring)
+    length(ring) < 3 && return false
+
+    return !(isequal(length(ring), 3) && (isequal(ring[3][1], ring[1][1]) && isequal(ring[3][2], ring[1][2])))
+end
+
+function dist²(p1::Point, p2::Point)
+    dx = p1.coordinates[1] - p2.coordinates[1]
+    dy = p1.coordinates[2] - p2.coordinates[2]
+
+    return dx * dx + dy * dy
+end
+
+function segdist²(p::Point, l1::Point, l2::Point)
+    x, y = l1.coordinates
+    dx = l2.coordinates[1] - x
+    dy = l2.coordinates[2] - y
+
+    if !iszero(dx) || !iszero(dy)
+        t = ((p.coordinates[1] - x) * dx + (p.coordinates[2] - y) * dy) / (dx * dx + dy * dy)
+
+        if t > 1
+            x = l2.coordinates[1]
+            y = l2.coordinates[2]
+        elseif t > 0
+            x += dx * t
+            y += dy * t
+        end
+    end
+
+    dx = p.coordinates[1] - x
+    dy = p.coordinates[2] - y
+
+    return dx * dx + dy * dy
+end
+
+
+function simplify_radial_distance(points::Vector, tol::Real)
+    previous = points[1]
+    new_points = [previous]
+    point = nothing
+
+    for i in eachindex(points)
+        point = points[i]
+        if dist²(point, previous) > tol
+            push!(new_points, point)
+            previous = point
+        end
+    end
+
+    !isequal(previous, point) && push!(new_points, point)
+
+    return new_points
+end
+
+function simplify_DP_step(points::Vector, first::Integer, last::Integer, tol::Real, simplified)
+    max_dist = tol
+    index = 0
+
+    for i = first+1:last
+        dist = segdist²(points[i], points[first], points[last])
+
+        if dist > max_dist
+            index = i
+            max_dist = dist
+        end
+    end
+
+    if max_dist > tol
+        (index - first > 1) && simplify_DP_step(points, first, index, tol, simplified)
+        push!(simplified, points[index])
+        (last - index > 1) && simplify_DP_step(points, index, last, tol, simplified)
+    end
+end
+
+
+function douglas_peucker(points::Vector, tol::Real)
+    last = length(points)
+
+    simplified = [points[1]]
+    simplify_DP_step(points, 1, last, tol, simplified)
+    push!(simplified, points[last])
+
+    return simplified
+end
+
+function DP_simplify(points::Vector, tol::Real, hq::Bool)
+    length(points) <= 2 && return points
+    sq_tol = tol * tol
+
+    points = hq ? points : simplify_radial_distance(points, sq_tol)
+    points = douglas_peucker(points, sq_tol)
+
     return points
 end
